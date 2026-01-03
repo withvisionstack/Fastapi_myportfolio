@@ -12,6 +12,9 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 
+# 🚦 CORS
+from fastapi.middleware.cors import CORSMiddleware
+
 # 📦 Carregar variáveis de ambiente
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -24,6 +27,21 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["15/minute"])
 
 app = FastAPI(title="Mensageria API")
 app.state.limiter = limiter
+
+# 🔧 Configurar CORS
+origins = [
+    "https://teste-de-api-six.vercel.app",  # seu front no Vercel
+    "http://127.0.0.1:5500",                # testes locais
+    "http://localhost:3000"                 # se usar React local
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,        # ou ["*"] para testes
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Tratamento de erro de limite
 @app.exception_handler(RateLimitExceeded)
@@ -77,7 +95,7 @@ async def send_email_notification(msg: MessageCreate):
     }
     payload = {
         "sender": {"name": "Mensageria API", "email": "no-reply@seudominio.com"},
-        "to": [{"email": "stafproject125bpm@gmail.com"}],  
+        "to": [{"email": "stafproject125bpm@gmail.com"}],
         "subject": "Nova mensagem recebida",
         "htmlContent": f"""
             <h3>Nova mensagem recebida</h3>
@@ -91,17 +109,17 @@ async def send_email_notification(msg: MessageCreate):
         if resp.status_code >= 400:
             print("Erro ao enviar email:", resp.text)
 
-#  Criar mensagem com UUID + enviar email
+# 🌐 Rota raiz
 @app.get("/", summary="Rota raiz")
 async def root():
-    return {"message": "API Mensageria rodando "}
+    return {"message": "API Mensageria rodando"}
 
-
+# 📩 Criar mensagem
 @app.post("/messages", response_model=MessageDB,
           summary="Cria uma nova mensagem",
           dependencies=[Depends(verify_api_key)])
 @limiter.limit("15/minute")
-async def create_message(request: Request, msg: MessageCreate):  #  request adicionado
+async def create_message(request: Request, msg: MessageCreate):
     data = {
         "id": str(uuid.uuid4()),
         "content": msg.content,
@@ -113,27 +131,29 @@ async def create_message(request: Request, msg: MessageCreate):  #  request adic
     await send_email_notification(msg)
     return result[0] if result else data
 
-#  Listar todas as mensagens
+# 📜 Listar mensagens
 @app.get("/messages", summary="Lista todas as mensagens",
-        dependencies=[Depends(verify_api_key)])
+         dependencies=[Depends(verify_api_key)])
 @limiter.limit("15/minute")
-async def list_messages(request: Request):  # request adicionado
+async def list_messages(request: Request):
     result = await supabase_request("GET", "messages")
     return result
 
-#  Buscar mensagem por ID
+# 🔎 Buscar mensagem por ID
 @app.get("/messages/{id}", response_model=MessageDB,
          summary="Busca mensagem por ID",
          dependencies=[Depends(verify_api_key)])
 @limiter.limit("15/minute")
-async def get_message(request: Request, id: uuid.UUID):  #  request adicionado
+async def get_message(request: Request, id: uuid.UUID):
     result = await supabase_request("GET", f"messages?id=eq.{id}")
     if not result:
         raise HTTPException(status_code=404, detail="Mensagem não encontrada")
     return result[0]
 
-#  Entrypoint
+# Entrypoint
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+
 
