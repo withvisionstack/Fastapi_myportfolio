@@ -1,0 +1,41 @@
+# Ambiente virtual
+venv/
+.env
+*.env
+
+# Cache e compilados do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.egg
+*.log
+
+# Arquivos de configuração locais
+*.sqlite3
+*.db
+*.DS_Store
+*.idea/
+*.vscode/
+
+# Build e distribuições
+build/
+dist/
+*.tar.gz
+*.whl
+
+# Testes
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Docker
+*.pid
+*.seed
+*.bak
+
+# Render/Railway
+# (se quiser manter Procfile e requirements.txt, não ignore)
+
