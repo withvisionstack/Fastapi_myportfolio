@@ -31,7 +31,7 @@ app.state.limiter = limiter
 # 🔧 Configurar CORS
 origins = [
     "https://teste-de-api-six.vercel.app",
-    "https://withvisionstackdev.vercel.app/"
+    "https://withvisionstackdev.vercel.app"
 ]
 
 app.add_middleware(
@@ -158,6 +158,7 @@ async def get_message(request: Request, id: uuid.UUID):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
