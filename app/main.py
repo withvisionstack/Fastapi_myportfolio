@@ -30,10 +30,8 @@ app.state.limiter = limiter
 
 # 🔧 Configurar CORS
 origins = [
-    "https://teste-de-api-six.vercel.app",  # seu front no Vercel
-    "http://127.0.0.1:5500",                # testes locais
-    "http://localhost:3000"                 # se usar React local
-    "https://withvisionstackdev.vercel.app"
+    "https://teste-de-api-six.vercel.app",
+    "https://withvisionstackdev.vercel.app/"
 ]
 
 app.add_middleware(
@@ -160,6 +158,7 @@ async def get_message(request: Request, id: uuid.UUID):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
