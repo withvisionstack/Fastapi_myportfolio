@@ -33,6 +33,7 @@ origins = [
     "https://teste-de-api-six.vercel.app",  # seu front no Vercel
     "http://127.0.0.1:5500",                # testes locais
     "http://localhost:3000"                 # se usar React local
+    "https://withvisionstackdev.vercel.app"
 ]
 
 app.add_middleware(
@@ -94,15 +95,20 @@ async def send_email_notification(msg: MessageCreate):
         "content-type": "application/json"
     }
     payload = {
-        "sender": {"name": "Mensageria API", "email": "no-reply@seudominio.com"},
-        "to": [{"email": "stafproject125bpm@gmail.com"}],
-        "subject": "Nova mensagem recebida",
-        "htmlContent": f"""
-            <h3>Nova mensagem recebida</h3>
-            <p><strong>Nome:</strong> {msg.sender_name}</p>
-            <p><strong>Email:</strong> {msg.sender_email}</p>
-            <p><strong>Mensagem:</strong> {msg.content}</p>
-        """
+        "sender": {
+        "name": "withvisionstack_developer", 
+        "email": "stafproject125bpm@gmail.com"
+    },
+    "to": [{"email": "stafproject125bpm@gmail.com"}],  # ou outro destinatário
+    "subject": "Nova mensagem recebida",
+    "htmlContent": f"""
+        <h3>Nova mensagem recebida</h3>
+        <p><strong>Nome:</strong> {msg.sender_name}</p>
+        <p><strong>Email:</strong> {msg.sender_email}</p>
+        <p><strong>Mensagem:</strong> {msg.content}</p>
+    """
+
+
     }
     async with httpx.AsyncClient() as client:
         resp = await client.post(url, headers=headers, json=payload)
@@ -154,6 +160,7 @@ async def get_message(request: Request, id: uuid.UUID):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
