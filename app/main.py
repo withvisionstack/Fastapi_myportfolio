@@ -12,23 +12,23 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import JSONResponse
 
-# 🚦 CORS
+# CORS
 from fastapi.middleware.cors import CORSMiddleware
 
-# 📦 Carregar variáveis de ambiente
+# Carregar variáveis de ambiente
 load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 API_SECRET = os.getenv("API_SECRET")
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 
-# 🚦 Configurar limiter (15 req/min por IP)
+#  Configurar limiter (15 req/min por IP)
 limiter = Limiter(key_func=get_remote_address, default_limits=["15/minute"])
 
 app = FastAPI(title="Mensageria API")
 app.state.limiter = limiter
 
-# 🔧 Configurar CORS
+#  Configurar CORS
 origins = [
     "https://teste-de-api-six.vercel.app",
     "https://withvisionstackdev.vercel.app"
@@ -50,22 +50,22 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         content={"detail": "Too many requests, try again later."}
     )
 
-# 🔒 Dependência para verificar API Key
+#  Dependência para verificar API Key
 async def verify_api_key(authorization: str = Header(...)):
     if authorization != f"Bearer {API_SECRET}":
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-# 📝 Modelo de entrada
+#  Modelo de entrada
 class MessageCreate(BaseModel):
     sender_name: str = Field(..., min_length=10)
     sender_email: EmailStr
     content: str = Field(..., min_length=600)
 
-# 📤 Modelo de saída
+#  Modelo de saída
 class MessageDB(MessageCreate):
     id: uuid.UUID
 
-# 🔧 Cliente HTTP assíncrono para Supabase
+#  Cliente HTTP assíncrono para Supabase
 async def supabase_request(method: str, endpoint: str, json: dict = None):
     headers = {
         "apikey": SUPABASE_KEY,
@@ -84,7 +84,7 @@ async def supabase_request(method: str, endpoint: str, json: dict = None):
             raise HTTPException(status_code=resp.status_code, detail=resp.text)
         return resp.json()
 
-# 🔔 Função para enviar email via Brevo
+#  Função para enviar email via Brevo
 async def send_email_notification(msg: MessageCreate):
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
@@ -113,12 +113,12 @@ async def send_email_notification(msg: MessageCreate):
         if resp.status_code >= 400:
             print("Erro ao enviar email:", resp.text)
 
-# 🌐 Rota raiz
+#  Rota raiz
 @app.get("/", summary="Rota raiz")
 async def root():
     return {"message": "API Mensageria rodando"}
 
-# 📩 Criar mensagem
+#  Criar mensagem
 @app.post("/messages", response_model=MessageDB,
           summary="Cria uma nova mensagem",
           dependencies=[Depends(verify_api_key)])
@@ -135,7 +135,7 @@ async def create_message(request: Request, msg: MessageCreate):
     await send_email_notification(msg)
     return result[0] if result else data
 
-# 📜 Listar mensagens
+#  Listar mensagens
 @app.get("/messages", summary="Lista todas as mensagens",
          dependencies=[Depends(verify_api_key)])
 @limiter.limit("15/minute")
@@ -143,7 +143,7 @@ async def list_messages(request: Request):
     result = await supabase_request("GET", "messages")
     return result
 
-# 🔎 Buscar mensagem por ID
+#  Buscar mensagem por ID
 @app.get("/messages/{id}", response_model=MessageDB,
          summary="Busca mensagem por ID",
          dependencies=[Depends(verify_api_key)])
@@ -158,6 +158,7 @@ async def get_message(request: Request, id: uuid.UUID):
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+
 
 
 
